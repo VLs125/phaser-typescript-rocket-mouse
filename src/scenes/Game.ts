@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import AnimationKeys from '~/consts/AnimationKeys';
 import SceneKeys from '~/consts/SceneKeys';
 import TextureKeys from '~/consts/TextureKeys';
+import LaserObstacle from '~/game/LaserObstacle';
 import RocketMouse from '~/game/RocketMouse';
 
 export default class Game extends Phaser.Scene
@@ -18,6 +19,7 @@ export default class Game extends Phaser.Scene
     private bookcases:Phaser.GameObjects.Image[] = [];
     private windows:Phaser.GameObjects.Image[] = [];
 
+    private laserObstacle!: LaserObstacle
 
 
 
@@ -29,6 +31,10 @@ export default class Game extends Phaser.Scene
         
         const width = this.scale.width;
         const height = this.scale.height;
+
+        this.laserObstacle = new LaserObstacle(this,900,100)
+
+        this.add.existing(this.laserObstacle)
 
         this.background = this.add.tileSprite(0,0,width,height,TextureKeys.Background)
         .setOrigin(0,0)
@@ -165,13 +171,34 @@ export default class Game extends Phaser.Scene
     }
 }
 
-    update(t:number, dt:number){
-        this.background.setTilePosition(this.cameras.main.scrollX) // добавляет прокрутку бэкграунда
+private wrapLaserObtacle(){
+    const scrollX = this.cameras.main.scrollX;
+    const rightEdge = scrollX + this.scale.width;
 
+    const width = this.laserObstacle.width
+    if(this.laserObstacle.x + width < scrollX){
+        this.laserObstacle.x = Phaser.Math.Between(
+            rightEdge + width,
+            rightEdge + width + 1000
+        );
+        this.laserObstacle.y = Phaser.Math.Between(0,300);
+    }
+}
+
+    update(t:number, dt:number){
         this.wrapMouseHole();
 
         this.wrapWindows();
 
         this.wrapBookcases();
+
+        this.wrapLaserObtacle();
+
+        this.background.setTilePosition(this.cameras.main.scrollX) // добавляет прокрутку бэкграунда
+
+       
+
+
+
     }
 }
